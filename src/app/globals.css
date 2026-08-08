@@ -1,26 +1,226 @@
 @import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+/* The site is committed light — a sign in daylight. shadcn's primitives ship
+   `dark:` utilities; binding the variant to a `.dark` ancestor we never add
+   keeps them inert instead of half-applying under OS dark mode. */
+@custom-variant dark (&:is(.dark *));
+
+/*
+  ── Hiromitsu design system ──────────────────────────────────────────────
+  Direction: "the standing sign". The site has no owner-approved photography
+  and no logo, so the identity is carried by type, colour blocking and one
+  repeated structural device (the Notice). Nothing here depicts the business.
+
+  Palette is committed light — a restaurant sign in daylight, not a dark UI.
+  Contrast ratios against their intended ground are noted inline; all pass
+  WCAG 2.2 AA for their size.
+*/
+
+@theme {
+  /* Surfaces */
+  --color-paper: #f3f4f0; /* bleached daylight, cool-neutral (not cream) */
+  --color-paper-raised: #fbfbf9;
+  --color-paper-sunk: #e8eae4;
+  --color-shade: #14312a; /* deep shade-green: the sign ground */
+  --color-shade-deep: #0c1f1b;
+
+  /* Text */
+  --color-ink: #16211d; /* 15.0:1 on paper */
+  --color-ink-soft: #55645e; /* 5.66:1 on paper */
+  --color-ink-inverse: #f3f4f0; /* 12.7:1 on shade */
+  --color-ink-inverse-soft: #a9bab2; /* 7.3:1 on shade */
+
+  /* Accent — brass/ochre. Used as a surface, and as a marker. */
+  --color-brass: #c08a2e; /* ink on brass = 5.5:1 */
+  --color-brass-deep: #a3721f;
+  --color-brass-light: #dca945; /* 6.5:1 on shade */
+
+  /* Provenance markers. Pending is cool + quiet, never red — nothing is wrong,
+     it simply is not confirmed yet. */
+  --color-pending: #6b7c88;
+  --color-pending-ink: #46565f; /* 6.9:1 on paper */
+  --color-pending-wash: #e4e8e9;
+
+  --color-rule: #d3d7cf;
+  --color-rule-inverse: #2c4941;
+
+  /* Type */
+  --font-display: var(--font-archivo), ui-sans-serif, system-ui, sans-serif;
+  --font-body: var(--font-literata), ui-serif, Georgia, serif;
+
+  --radius-xs: 2px;
+  --radius-sm: 4px;
+  --radius-md: 6px;
+  --radius-lg: 10px;
+
+  --spacing-tap: 2.75rem; /* 44px — minimum touch target */
 }
 
+/* shadcn primitives read these token names. Point them at ours so the
+   generated components inherit the design system instead of neutral grey. */
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-background: var(--color-paper);
+  --color-foreground: var(--color-ink);
+  --color-card: var(--color-paper-raised);
+  --color-card-foreground: var(--color-ink);
+  --color-popover: var(--color-paper-raised);
+  --color-popover-foreground: var(--color-ink);
+  --color-primary: var(--color-shade);
+  --color-primary-foreground: var(--color-ink-inverse);
+  --color-secondary: var(--color-paper-sunk);
+  --color-secondary-foreground: var(--color-ink);
+  --color-muted: var(--color-paper-sunk);
+  --color-muted-foreground: var(--color-ink-soft);
+  --color-accent: var(--color-brass);
+  --color-accent-foreground: var(--color-ink);
+  --color-destructive: #9a2f24;
+  --color-border: var(--color-rule);
+  --color-input: var(--color-rule);
+  --color-ring: var(--color-shade);
+  --radius: 6px;
+  --font-sans: var(--font-display);
+  --font-mono: ui-monospace, monospace;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+@layer base {
+  *,
+  *::before,
+  *::after {
+    border-color: var(--color-rule);
+  }
+
+  html {
+    /* Nothing on this site is wide enough to need horizontal scroll. If
+       something overflows, that is a bug — clip it rather than ship a
+       sideways-scrolling page on a 320px phone.
+       `clip`, not `hidden`: `hidden` turns the root into a scroll container,
+       which silently breaks `position: sticky` on the header. */
+    overflow-x: clip;
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body {
+    background-color: var(--color-paper);
+    color: var(--color-ink);
+    font-family: var(--font-body);
+    font-size: 1.0625rem;
+    line-height: 1.65;
+    font-optical-sizing: auto;
+    text-rendering: optimizeLegibility;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4 {
+    font-family: var(--font-display);
+    font-weight: 620;
+    line-height: 1.02;
+    letter-spacing: -0.022em;
+    font-variation-settings: "wdth" 112;
+    text-wrap: balance;
+  }
+
+  p {
+    text-wrap: pretty;
+  }
+
+  /* One visible focus treatment everywhere, including inside dark panels. */
+  :focus-visible {
+    outline: 2px solid var(--color-brass-deep);
+    outline-offset: 3px;
+    border-radius: 2px;
+  }
+
+  .on-shade :focus-visible,
+  .on-shade:focus-visible {
+    outline-color: var(--color-brass-light);
+  }
+
+  ::selection {
+    background-color: var(--color-brass);
+    color: var(--color-ink);
+  }
+
+  /* Numbers in notices and the checklist should align in columns. */
+  .tabular {
+    font-variant-numeric: tabular-nums;
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+@layer components {
+  /*
+    The wordmark. Archivo's width axis is the whole idea: wide = the sign,
+    narrow = the small print. There is no logo file, so this IS the mark.
+  */
+  .wordmark {
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-variation-settings: "wdth" 122;
+    letter-spacing: -0.03em;
+    line-height: 0.86;
+    text-transform: uppercase;
+  }
+
+  /*
+    Label voice: the same family pulled narrow and tracked open. Width carries
+    the role, so the page needs only two typefaces.
+  */
+  .label {
+    font-family: var(--font-display);
+    font-size: 0.6875rem;
+    font-weight: 580;
+    font-variation-settings: "wdth" 86;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    line-height: 1.2;
+  }
+
+  .prose-block p + p {
+    margin-top: 1.15em;
+  }
+
+  .prose-block a {
+    color: var(--color-ink);
+    text-decoration-line: underline;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 3px;
+    text-decoration-color: var(--color-brass);
+  }
+
+  .prose-block a:hover {
+    text-decoration-thickness: 2px;
+  }
+}
+
+@layer utilities {
+  /* Page-load reveal for the hero, and scroll-independent section entrances.
+     Deliberately one gesture: rise + fade, staggered. */
+  @keyframes rise {
+    from {
+      opacity: 0;
+      transform: translateY(0.7rem);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+
+  .animate-rise {
+    animation: rise 0.62s cubic-bezier(0.16, 0.84, 0.32, 1) both;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.001ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.001ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
 }
